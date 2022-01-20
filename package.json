@@ -1,0 +1,12 @@
+{
+  "devDependencies": {
+    "jest": "^27.4.7"
+  },
+  "type": "module",
+  "jest": {
+    "transform": {}
+  },
+  "scripts": {
+    "test": "NODE_OPTIONS='--experimental-vm-modules' jest"
+  }
+}
