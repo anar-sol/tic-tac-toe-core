@@ -370,6 +370,44 @@ test('newRound reset grid', () => {
     ]);
 });
 
+test('turn callback is called when new game starts', done => {
+    function callback(game) {
+        try {
+            expect(game.players[game.turn].mark).toEqual('X');
+            done();
+        } catch (error) {
+            done(error);
+        }
+    }
+    const game = TicTacToe.newGame(callback);
+});
+
+test('turn callback is called when new round is started', done => {
+    function callback(game) {
+        try {
+            expect(game.players[game.turn].mark).toEqual('O');
+            done();
+        } catch (error) {
+            done(error);
+        }
+    }
+    const game = TicTacToe.newGame(null, callback);
+    game.newRound();
+});
+
+test('turn callback is called when new turn passes', done => {
+    function callback(game) {
+        try {
+            expect(game.players[game.turn].mark).toEqual('O');
+            done();
+        } catch (error) {
+            done(error);
+        }
+    }
+    const game = TicTacToe.newGame(null, callback);
+    game.passTurn();
+});
+
 test('playMove: mark a cell and pass turn and so on', () => {
     const game = TicTacToe.newGame();
     const player1 = game.players[game.turn];

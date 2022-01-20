@@ -21,7 +21,7 @@ class Alignment {
 }
 
 export default class TicTacToe {
-    constructor() {
+    constructor(onTurnX, onTurnO) {
         this.magicSquare = [
             [8, 1, 6],
             [3, 5, 7],
@@ -29,7 +29,7 @@ export default class TicTacToe {
         ];
         this.first = 0;
         this.#initGrid();
-        this.#initPlayers();
+        this.#initPlayers(onTurnX, onTurnO);
         this.#initTurn();
     }
 
@@ -41,20 +41,26 @@ export default class TicTacToe {
         ];
     }
 
-    #initPlayers() {
+    #initPlayers(onTurnX, onTurnO) {
         this.players = [
             new Player('X'),
             new Player('O')
+        ];
+        this.callBacks = [
+            onTurnX,
+            onTurnO
         ];
     }
 
     #initTurn() {
         this.turn = this.first;
         this.first = (this.first + 1) % this.players.length;
+        
+        if (this.callBacks[this.turn] !== null) this.callBacks[this.turn](this);
     }
 
-    static newGame() {
-        return new TicTacToe();
+    static newGame(onTurnX = null, onTurnO = null) {
+        return new TicTacToe(onTurnX, onTurnO);
     }
 
     newRound() {
@@ -64,6 +70,7 @@ export default class TicTacToe {
 
     passTurn() {
         this.turn = (this.turn + 1) % this.players.length;
+        if (this.callBacks[this.turn] !== null) this.callBacks[this.turn](this);
     }
 
     mark(row, col, mark) {
