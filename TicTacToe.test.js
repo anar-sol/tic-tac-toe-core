@@ -337,6 +337,13 @@ test('incrementScore add 1 to player current score', () => {
     expect(player.score).toEqual(currScore + 1);
 });
 
+test('newRound sets endRound to false', () => {
+    const game = TicTacToe.newGame();
+
+    game.newRound();
+    expect(game.roundEnd).toBeFalsy();
+});
+
 test('newRound changes first player', () => {
     const game = TicTacToe.newGame();
     const first = game.players[game.turn];
@@ -380,6 +387,7 @@ test('turn callback is called when new game starts', done => {
         }
     }
     const game = TicTacToe.newGame(callback);
+    game.next();
 });
 
 test('turn callback is called when new round is started', done => {
@@ -393,6 +401,7 @@ test('turn callback is called when new round is started', done => {
     }
     const game = TicTacToe.newGame(null, callback);
     game.newRound();
+    game.next();
 });
 
 test('turn callback is called when new turn passes', done => {
@@ -406,6 +415,7 @@ test('turn callback is called when new turn passes', done => {
     }
     const game = TicTacToe.newGame(null, callback);
     game.passTurn();
+    game.next();
 });
 
 test('playMove: mark a cell and pass turn and so on', () => {
@@ -456,46 +466,60 @@ test('playMove: when aligned increment the current player score', () => {
     expect(player2.score).toEqual(0);
 });
 
-test('playMove: when aligned start a new round', () => {
+test('playMove: when aligned ends the round', () => {
     const game = TicTacToe.newGame();
     const player1 = game.players[game.turn];
-    const player2 = game.players[(game.turn + 1) % game.players.length];
 
     game.playMove(1, 1); // player 1
     game.playMove(1, 0);
     game.playMove(0, 0); // player 1
     game.playMove(2, 1);
     game.playMove(2, 2); // player 1
-    // there's an alignment, start anew round
+    // there's an alignment, end the round
+    expect(game.roundEnd).toBeTruthy();
     expect(game.grid).toEqual([
-        ['', '', ''],
-        ['', '', ''],
-        ['', '', '']
+        ['X', '', ''],
+        ['O', 'X', ''],
+        ['', 'O', 'X']
     ]);
-    expect(game.players[game.turn]).toEqual(player2);
+    expect(game.players[game.turn]).toEqual(player1);
 });
 
-test('playMove: when the board is full start a new round', () => {
+test('playMove: when roundEnd is true, does nothing', () => {
     const game = TicTacToe.newGame();
     const player1 = game.players[game.turn];
-    const player2 = game.players[(game.turn + 1) % game.players.length];
 
-    game.playMove(1, 1); // player 1
-    game.playMove(0, 0); // player 2
-    game.playMove(1, 0); // player 1
-    game.playMove(1, 2); // player 2
-    game.playMove(0, 2); // player 1
-    game.playMove(2, 0); // player 2
-    game.playMove(0, 1); // player 1
-    game.playMove(2, 1); // player 2
-    game.playMove(2, 2); // player 1
-    // the board is full, start anew round
+    game.roundEnd = true;
+
+    game.playMove(1, 1);
     expect(game.grid).toEqual([
         ['', '', ''],
         ['', '', ''],
         ['', '', '']
     ]);
-    expect(game.players[game.turn]).toEqual(player2);
-    expect(player1.score).toEqual(0);
-    expect(player2.score).toEqual(0);
+    expect(game.players[game.turn]).toEqual(player1);
+});
+
+test('playMove: when the grid is full ends the round', () => {
+    const game = TicTacToe.newGame();
+    const player1 = game.players[game.turn];
+
+    game.playMove(1, 1); // player 1
+    game.playMove(0, 0);
+    game.playMove(2, 2); // player 1
+    game.playMove(2, 0);
+    game.playMove(1, 0); // player 1
+    game.playMove(1, 2);
+    game.playMove(0, 1); // player 1
+    game.playMove(2, 1);
+    game.playMove(0, 2); // player 1
+
+    // there's an alignment, end the round
+    expect(game.roundEnd).toBeTruthy();
+    expect(game.grid).toEqual([
+        ['O', 'X', 'X'],
+        ['X', 'X', 'O'],
+        ['O', 'O', 'X']
+    ]);
+    expect(game.players[game.turn]).toEqual(player1);
 });

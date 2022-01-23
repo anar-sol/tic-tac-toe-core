@@ -7,10 +7,6 @@ class Player {
     incrementScore() {
         this.score += 1;
     }
-
-    toString() {
-        return `Player {mark: ${this.mark}, score: ${this.score}}`;
-    }
 }
 
 class Alignment {
@@ -31,6 +27,7 @@ export default class TicTacToe {
         this.#initGrid();
         this.#initPlayers(onTurnX, onTurnO);
         this.#initTurn();
+        this.roundEnd = false;
     }
 
     #initGrid() {
@@ -55,22 +52,24 @@ export default class TicTacToe {
     #initTurn() {
         this.turn = this.first;
         this.first = (this.first + 1) % this.players.length;
-        
-        if (this.callBacks[this.turn] !== null) this.callBacks[this.turn](this);
     }
 
     static newGame(onTurnX = null, onTurnO = null) {
         return new TicTacToe(onTurnX, onTurnO);
     }
 
+    next() {
+        if (this.callBacks[this.turn] !== null) this.callBacks[this.turn](this);
+    }
+
     newRound() {
+        this.roundEnd = false;
         this.#initGrid();
         this.#initTurn();
     }
 
     passTurn() {
         this.turn = (this.turn + 1) % this.players.length;
-        if (this.callBacks[this.turn] !== null) this.callBacks[this.turn](this);
     }
 
     mark(row, col, mark) {
@@ -165,31 +164,18 @@ export default class TicTacToe {
     }
 
     playMove(row, col) {
-        const currPlayer = this.players[this.turn];
-        this.mark(row, col, currPlayer.mark);
-        const align = this.checkAlignment();
-        if (align !== null && align.mark === currPlayer.mark) {
-            currPlayer.score += 1;
-            this.newRound();
-        } else if (this.isFull()) {
-            this.newRound();
-        } else {
-            this.passTurn();
+        if (!this.roundEnd) {
+            const currPlayer = this.players[this.turn];
+            this.mark(row, col, currPlayer.mark);
+            const align = this.checkAlignment();
+            if (align !== null && align.mark === currPlayer.mark) {
+                currPlayer.incrementScore();
+                this.roundEnd = true;
+            } else if (this.isFull()) {
+                this.roundEnd = true;
+            } else {
+                this.passTurn();
+            }
         }
     }
-
-    log() {
-        for (const player of this.players) {
-            console.log(player.toString());
-        }
-        console.log(`Turn ${this.turn}`);
-        for (const row of this.grid) {
-            console.log(row);
-        }
-    }
-    /*
-        toString() {
-            return this.grid.toString();
-        }
-    */
 }
