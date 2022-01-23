@@ -17,55 +17,35 @@ class Alignment {
 }
 
 export default class TicTacToe {
+    static #MAGIC_SQUARE = [
+        [8, 1, 6],
+        [3, 5, 7],
+        [4, 9, 2]
+    ];
+
+    #first = 0;
+
     constructor(onTurnX, onTurnO) {
-        this.magicSquare = [
-            [8, 1, 6],
-            [3, 5, 7],
-            [4, 9, 2]
-        ];
-        this.first = 0;
-        this.#initGrid();
         this.#initPlayers(onTurnX, onTurnO);
-        this.#initTurn();
-        this.roundEnd = false;
+        this.newRound();
     }
 
-    #initGrid() {
-        this.grid = [
-            ['', '', ''],
-            ['', '', ''],
-            ['', '', '']
-        ];
-    }
-
-    #initPlayers(onTurnX, onTurnO) {
-        this.players = [
-            new Player('X'),
-            new Player('O')
-        ];
-        this.callBacks = [
-            onTurnX,
-            onTurnO
-        ];
-    }
-
-    #initTurn() {
-        this.turn = this.first;
-        this.first = (this.first + 1) % this.players.length;
+    static get MAGIC_SQUARE() {
+        return TicTacToe.#MAGIC_SQUARE;
     }
 
     static newGame(onTurnX = null, onTurnO = null) {
         return new TicTacToe(onTurnX, onTurnO);
     }
 
-    next() {
-        if (this.callBacks[this.turn] !== null) this.callBacks[this.turn](this);
-    }
-
     newRound() {
         this.roundEnd = false;
         this.#initGrid();
         this.#initTurn();
+    }
+
+    next() {
+        if (this.callBacks[this.turn] !== null) this.callBacks[this.turn](this);
     }
 
     passTurn() {
@@ -102,12 +82,52 @@ export default class TicTacToe {
         return marks === 9;
     }
 
+    playMove(row, col) {
+        if (!this.roundEnd) {
+            const currPlayer = this.players[this.turn];
+            this.mark(row, col, currPlayer.mark);
+            const align = this.checkAlignment();
+            if (align !== null && align.mark === currPlayer.mark) {
+                currPlayer.incrementScore();
+                this.roundEnd = true;
+            } else if (this.isFull()) {
+                this.roundEnd = true;
+            } else {
+                this.passTurn();
+            }
+        }
+    }
+
+    #initGrid() {
+        this.grid = [
+            ['', '', ''],
+            ['', '', ''],
+            ['', '', '']
+        ];
+    }
+
+    #initPlayers(onTurnX, onTurnO) {
+        this.players = [
+            new Player('X'),
+            new Player('O')
+        ];
+        this.callBacks = [
+            onTurnX,
+            onTurnO
+        ];
+    }
+
+    #initTurn() {
+        this.turn = this.#first;
+        this.#first = (this.#first + 1) % this.players.length;
+    }
+
     #isHorizontallyAligned() {
         for (let row = 0; row < 3; row++) {
             let sum = 0;
             for (let col = 0; col < 3; col++) {
                 let cell = this.grid[row][col];
-                let magicCell = this.magicSquare[row][col];
+                let magicCell = TicTacToe.MAGIC_SQUARE[row][col];
                 if (cell !== '') {
                     sum += cell === 'X'? magicCell: magicCell * 2;
                 }
@@ -123,7 +143,7 @@ export default class TicTacToe {
             let sum = 0;
             for (let row = 0; row < 3; row++) {
                 let cell = this.grid[row][col];
-                let magicCell = this.magicSquare[row][col];
+                let magicCell = TicTacToe.MAGIC_SQUARE[row][col];
                 if (cell !== '') {
                     sum += cell === 'X'? magicCell: magicCell * 2;
                 }
@@ -141,7 +161,7 @@ export default class TicTacToe {
         let row, col;
         for (row = col = 0; row < 3; row++, col++) {
             let cell = this.grid[row][col];
-            let magicCell = this.magicSquare[row][col];
+            let magicCell = TicTacToe.MAGIC_SQUARE[row][col];
             if (cell !== '') {
                 sum += cell === 'X'? magicCell: magicCell * 2;
             }
@@ -152,7 +172,7 @@ export default class TicTacToe {
         sum = 0;
         for (row = 0, col = 2; row < 3; row++, col--) {
             let cell = this.grid[row][col];
-            let magicCell = this.magicSquare[row][col];
+            let magicCell = TicTacToe.MAGIC_SQUARE[row][col];
             if (cell !== '') {
                 sum += cell === 'X'? magicCell: magicCell * 2;
             }
@@ -161,21 +181,5 @@ export default class TicTacToe {
         if (sum === 30) return new Alignment(7, 'O');
 
         return null;
-    }
-
-    playMove(row, col) {
-        if (!this.roundEnd) {
-            const currPlayer = this.players[this.turn];
-            this.mark(row, col, currPlayer.mark);
-            const align = this.checkAlignment();
-            if (align !== null && align.mark === currPlayer.mark) {
-                currPlayer.incrementScore();
-                this.roundEnd = true;
-            } else if (this.isFull()) {
-                this.roundEnd = true;
-            } else {
-                this.passTurn();
-            }
-        }
     }
 }
