@@ -1,7 +1,17 @@
+import Utils from "./Utils.js";
+
 class Player {
-    constructor(mark) {
+    constructor(mark, score) {
         this.mark = mark;
-        this.score = 0;
+        this.score = score;
+    }
+
+    static create(mark, score = 0) {
+        return new Player(mark, score);
+    }
+
+    static copy(player) {
+        return new Player(player.mark, player.score);
     }
 
     incrementScore() {
@@ -17,31 +27,69 @@ class Alignment {
 }
 
 export default class TicTacToe {
-    static #MAGIC_SQUARE = [
+    static MAGIC_SQUARE = [
         [8, 1, 6],
         [3, 5, 7],
         [4, 9, 2]
     ];
 
-    #first = 0;
-
-    constructor(onTurnX, onTurnO) {
-        this.#initPlayers(onTurnX, onTurnO);
-        this.newRound();
-    }
-
-    static get MAGIC_SQUARE() {
-        return TicTacToe.#MAGIC_SQUARE;
+    constructor(from = {}) {
+        this.callBacks = from.callBacks;
+        if (from.players) {
+            this.players = [Player.copy(from.players[0]), Player.copy(from.players[1])];
+        } else {
+            this.players = [Player.create('X'), Player.create('O')];
+        }
+        if (from.roundEnd) {
+            this.roundEnd = from.roundEnd;
+        } else {
+            this.roundEnd = false;
+        }
+        if (from.grid) {
+            this.grid = Utils.copyGrid(from.grid);
+        } else {
+            this.grid = [
+                ['', '', ''],
+                ['', '', ''],
+                ['', '', '']
+            ];
+        }
+        if (from.first) {
+            this.first = from.first;
+        } else {
+            this.first = 0;
+        }
+        if (from.turn !== undefined) {
+            this.turn = from.turn;
+        } else {
+            this.turn = this.first;
+            this.first = (this.first + 1) % this.players.length;
+        }
     }
 
     static newGame(onTurnX = null, onTurnO = null) {
-        return new TicTacToe(onTurnX, onTurnO);
+        return new TicTacToe({
+            callBacks: [onTurnX, onTurnO]
+        });
+    }
+
+    static copy(game) {
+        return new TicTacToe(game);
+    }
+
+    static get MAGIC_SQUARE() {
+        return TicTacToe.MAGIC_SQUARE;
     }
 
     newRound() {
         this.roundEnd = false;
-        this.#initGrid();
-        this.#initTurn();
+        this.grid = [
+            ['', '', ''],
+            ['', '', ''],
+            ['', '', '']
+        ];
+        this.turn = this.first;
+        this.first = (this.first + 1) % this.players.length;
     }
 
     next() {
@@ -87,7 +135,7 @@ export default class TicTacToe {
             const currPlayer = this.players[this.turn];
             this.mark(row, col, currPlayer.mark);
             const align = this.checkAlignment();
-            if (align !== null && align.mark === currPlayer.mark) {
+            if (align !== null) {
                 currPlayer.incrementScore();
                 this.roundEnd = true;
             } else if (this.isFull()) {
@@ -96,30 +144,6 @@ export default class TicTacToe {
                 this.passTurn();
             }
         }
-    }
-
-    #initGrid() {
-        this.grid = [
-            ['', '', ''],
-            ['', '', ''],
-            ['', '', '']
-        ];
-    }
-
-    #initPlayers(onTurnX, onTurnO) {
-        this.players = [
-            new Player('X'),
-            new Player('O')
-        ];
-        this.callBacks = [
-            onTurnX,
-            onTurnO
-        ];
-    }
-
-    #initTurn() {
-        this.turn = this.#first;
-        this.#first = (this.#first + 1) % this.players.length;
     }
 
     #isHorizontallyAligned() {

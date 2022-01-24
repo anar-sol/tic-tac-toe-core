@@ -9,5 +9,8 @@
   "scripts": {
     "test": "NODE_OPTIONS='--experimental-vm-modules' jest",
     "coverage": "NODE_OPTIONS='--experimental-vm-modules' jest --coverage"
+  },
+  "dependencies": {
+    "tree-util": "^1.0.6"
   }
 }
