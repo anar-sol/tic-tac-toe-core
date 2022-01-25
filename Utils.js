@@ -9,10 +9,10 @@ export default class Utils {
         return newGrid;
     }
 
-    static setIds(game, parentid = null) {
-        game.id = Utils.#id++;
-        game.parentid = parentid;
-        return game;
+    static setIds(node, parentid = null) {
+        node.id = Utils.#id++;
+        node.parentid = parentid;
+        return node;
     }
 
     static logGame(game) {
