@@ -28,11 +28,8 @@ export default class TicTacToeAI {
     findBestNextState() {
         const currState = this.findCurrentState();
         const currNode = this.tree.getNodeById(currState.referenceid);
-        console.log('***************************************');
-        console.log(currNode);
         let maxWeightedNode = null;
         if (currNode) {
-            console.log('************ in if')
             maxWeightedNode = currNode.children[0];
 
             for (const node of currNode.children) {
@@ -41,7 +38,6 @@ export default class TicTacToeAI {
                 }
             }
         }
-        console.log(maxWeightedNode.items[0]);
         return maxWeightedNode.items[0];
     }
 
@@ -92,6 +88,17 @@ export default class TicTacToeAI {
         return maxWeight;
     }
 
+    #minNodes(nodes) {
+        let minWeight = Number.POSITIVE_INFINITY;
+        for (const node of nodes) {
+            const currWeight = node.items[0].weight;
+            if (currWeight < minWeight) {
+                minWeight = currWeight;
+            }
+        }
+        return minWeight;
+    }
+
     #evaluateLeaf(state) {
         if (state.roundEnd) {
             let weight = 0;
@@ -125,7 +132,11 @@ export default class TicTacToeAI {
         }
 
         if (state.weight === undefined) {
-            state.weight = this.#maxNodes(node.children);
+            if (state.turn === this.player)
+                state.weight = this.#maxNodes(node.children);
+            else {
+                state.weight = this.#minNodes(node.children);
+            }
         }
 
         return tree;
